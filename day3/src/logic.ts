@@ -29,6 +29,36 @@ class Tile {
         map[x][y] = this;
     }
 
+    gearRatio() {
+        if (this.char !== '*') {
+            return false;
+        }
+
+        const neighbors = this.neighborsOf();
+
+        const parts: Part[] = [];
+
+        for (const neighbor of neighbors) {
+            const [x, y] = neighbor;
+
+            if (this.map[x] && this.map[x][y] && this.map[x][y].isNumber()) {
+                const {part} = this.map[x][y]
+
+                if (part && !parts.includes(part)) {
+                    parts.push(part);
+                }
+            }
+        }
+
+        if (parts.length !== 2) {
+            return undefined;
+        }
+
+        const [part1, part2] = parts;
+        
+        return parseInt(part1.value()) * parseInt(part2.value());
+    }
+
     isNumber() {
         return NUMBERS.includes(this.char)
     }
@@ -112,7 +142,6 @@ export function logic(data: string): void {
         .filter(tile => tile.isValidNumberPart())
         .reduce((list, tile) => {
             if (tile.part && !list.includes(tile.part)) {
-                console.log(tile.part.value());
                 list.push(tile.part);
             }
 
@@ -121,6 +150,16 @@ export function logic(data: string): void {
         .map(p => parseInt(p.value()))
         .reduce((sum, value) => sum + value, 0);
 
+    const gearRatios = list
+        .map(tile => tile.gearRatio())
+        .filter(ratio => ratio)
+        .reduce((sum: number, ratio) => {
+            if (ratio) {
+                sum += ratio;
+            }
 
-    console.log({ validNumberParts })
+            return sum
+        }, 0)
+
+    console.log({ validNumberParts, gearRatios })
 }
